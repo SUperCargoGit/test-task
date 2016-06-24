@@ -3,35 +3,54 @@
 abstract class Logger {
 
 	protected function getText($entry) {
-		return date("Y-m-d H:i:s ").serialize($entry);
+		return (gettype($entry) == "string") ? date("Y-m-d H:i:s ").$entry : date("Y-m-d H:i:s ").serialize($entry);
+	}
+
+	static function getInstance($type, $params = NULL){
+		switch ($type) {
+			case "stdout" : {
+				return new STDLogger();
+			}
+			case "file" : {
+				return new FileLogger($params[0]);
+			}
+			case "mysql" : {
+				return new DBLogger($params[0],$params[1],$params[2],$params[3]);
+			}
+		}
 	}
 
 	abstract protected function logAdd($entry);
 
 }
 
+class STDLogger extends Logger{
+
+	function logAdd($entry){
+		echo $this->getText($entry);
+	}
+}
+
+class FileLogger extends Logger{
+
+	private $file;
+
+	function __construct($file) { 
+		$this->file = $file;
+    }
+
+	public function logAdd($entry){
+		$file = fopen($this->file, "a");
+		fwrite($file, $this->getText($entry)."\r\n");
+		fclose($file);
+	}
+}
+
 class DBLogger extends Logger{
 
 	private $DBH;
 
-	function __construct() { 
-        $a = func_get_args(); 
-        $i = func_num_args(); 
-        if (method_exists($this,$f='__construct'.$i)) { 
-            call_user_func_array(array($this,$f),$a); 
-        } 
-    }
-
-	private function __construct0() {
-		try {
-			$this->DBH = new PDO("mysql:host=localhost;dbname=log", 'root', ''); 
-		}  
-		catch(PDOException $e) {  
-			echo $e->getMessage();  
-		}
-	}
-
-	private function __construct4($host,$dbname,$user,$pass) {
+	function __construct($host,$dbname,$user,$pass) {
 		try {   
 			$this->DBH = new PDO("mysql:host=$host;dbname=$dbname", $user, $pass);
 		}  
@@ -49,37 +68,6 @@ class DBLogger extends Logger{
 		catch(PDOException $e) {  
 			echo $e->getMessage();  
 		}
-	}
-}
-
-class FileLogger extends Logger{
-
-	private $file = "LogFile.log";
-
-	function __construct() { 
-        $a = func_get_args(); 
-        $i = func_num_args(); 
-        if (method_exists($this,$f='__construct'.$i)) { 
-            call_user_func_array(array($this,$f),$a); 
-        } 
-    }
-
-    function __construct1($file) {
-    	$this->file = $file;
-    }
-
-	public function logAdd($entry){
-		$file = fopen($this->file, "a");
-		fwrite($file, $this->getText($entry)."\r\n");
-		fclose($file);
-	}
-}
-
-class STDLogger extends Logger{
-
-	public function logAdd($entry){
-		$stdout = fopen('php://stdout','w');
-        fwrite($stdout, $this->getText($entry));
 	}
 }
 
