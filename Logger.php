@@ -36,13 +36,11 @@ class FileLogger extends Logger{
 	private $file;
 
 	function __construct($file) { 
-		$this->file = $file;
+		$this->file = fopen($file, "a");
     }
 
 	public function logAdd($entry){
-		$file = fopen($this->file, "a");
-		fwrite($file, $this->getText($entry)."\r\n");
-		fclose($file);
+		fwrite($this->file, $this->getText($entry)."\r\n");
 	}
 }
 
