@@ -39,6 +39,10 @@ class FileLogger extends Logger{
 		$this->file = fopen($file, "a");
     }
 
+    function __destruct() {
+    	fclose($this->file);
+    }
+
 	public function logAdd($entry){
 		fwrite($this->file, $this->getText($entry)."\r\n");
 	}
@@ -56,6 +60,10 @@ class DBLogger extends Logger{
 			echo $e->getMessage();  
 		}
 	}
+
+	function __destruct() {
+    	$this->DBH = NULL;
+    }
 
 	function logAdd($entry) {
 		try {
